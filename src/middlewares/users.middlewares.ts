@@ -96,8 +96,9 @@ export const registerValidator = validate(
       custom: {
         options: (value, { req }) => {
           if (value !== req.body.password) {
-            throw new Error('Password confirmation does not match password')
+            throw new Error('Password confirmation does not match password') //qwer
           }
+
           return true //k đc thiếu return true, nếu k thì k bao giờ pass qua vòng này
         }
       }

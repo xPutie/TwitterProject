@@ -5,36 +5,26 @@ import userService from '~/services/users.services'
 import { ParamsDictionary } from 'express-serve-static-core'
 import { RegisterReqBody } from '~/models/requests/User.requests'
 
-export const loginController = (req: Request, res: Response) => {
-  const { email, password } = req.body
-  if (email === 'test@gmail.com' && password === '123456') {
-    //nếu json thì phải use bên file index để máy có thể hiểu đc là mình đang xài json
-    res.json({
-      data: [
-        { name: 'Điệp', yob: 1999 },
-        { name: 'Hùng', yob: 2004 },
-        { name: 'Được', yob: 1994 }
-      ]
-    })
-  } else {
-    res.status(400).json({
-      message: 'login failed'
-    })
-  }
+export const loginController = async (req: Request, res: Response) => {
+  //lấy user id từ user của request
+  //dùng user_id tạo access_token và refresh_token
+  // res access_token và refrest_token
+  const { user }: any = req // lấy user từ req
+  const user_id = user._id // lấy _id từ user
+  const result = await userService.login(user_id.toString())
+  //login nhận vào user_id:string, nhưng user_id ta có
+  //là objectid trên mongodb, nên phải toString()
+  //trả ra kết quả, thiếu cái này là sending hoài luôn
+  res.json({
+    message: 'Login success',
+    result
+  })
 }
 
 export const registerController = async (req: Request<ParamsDictionary, any, RegisterReqBody>, res: Response) => {
-  try {
-    // tạo 1 user mới và bỏ vào Collection users trong database
-    const result = await userService.register(req.body)
-    return res.status(201).json({
-      message: 'register successfully',
-      result
-    })
-  } catch (error) {
-    return res.status(400).json({
-      message: 'register fail',
-      error
-    })
-  }
+  const result = await userService.register(req.body)
+  return res.status(201).json({
+    message: 'register successfully',
+    result
+  })
 }

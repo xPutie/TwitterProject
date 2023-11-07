@@ -1,6 +1,7 @@
 import express from 'express'
 import { body, validationResult, ValidationChain } from 'express-validator'
 import { RunnableValidationChains } from 'express-validator/src/middlewares/schema'
+import { EntityError, ErrorWithStatus } from '~/models/Errors'
 
 //export ở ngoài xài đc hàm validate
 //hàm validate có 2 cách xài:
@@ -18,6 +19,18 @@ export const validate = (validations: RunnableValidationChains<ValidationChain>)
       return next()
     }
 
-    res.status(400).json({ errors: errors.mapped() })
+    const errorObject = errors.mapped()
+    const entityError = new EntityError({ errors: {} })
+    for (const key in errorObject) {
+      //phân rã msg của 1 cái lỗi ra
+      const { msg } = errorObject[key]
+      if (msg instanceof ErrorWithStatus && msg.status !== 422) {
+        return next(msg)
+      }
+      // nếu lỗi phát sinh không phải từ ErrorWithStatus thì lưu vào entityError
+      entityError.errors[key] = msg
+    }
+    // ở đây nó xử lí lỗi luôn
+    next(entityError)
   }
 }
